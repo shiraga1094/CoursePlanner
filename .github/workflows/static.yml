@@ -1,0 +1,25 @@
+name: Weekly Crawler
+
+on:
+  schedule:
+    - cron: "0 16 * * 5"
+  workflow_dispatch: # 手動跑，建議保留
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        working-directory: crawler
+        run: npm ci
+
+      - name: Run crawler
+        run: node crawler/index.js
