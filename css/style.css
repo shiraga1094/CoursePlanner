@@ -81,14 +81,14 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
   border-bottom:1px solid var(--border);
   background: rgba(11,13,18,.72);
   backdrop-filter: blur(10px);
-  position:sticky; top:0; z-index:20;
+  position:fixed; 
+  top:0; 
+  left:0;
+  right:0;
+  z-index:100;
 }
 
-.topbar-left, .topbar-right{ display:flex; align-items:center; gap:10px; }
-.label{ color:var(--muted); font-size:12px; }
-.term{ display:flex; align-items:center; gap:8px; }
-
-.app{ padding:14px; }
+.app{ padding:14px; padding-top:68px; }
 
 .page{ display:none; }
 .page.active{ display:block; }
@@ -736,13 +736,17 @@ body.light .modal-body{ color: var(--muted); }
 /* Responsive design: Mobile view */
 
 @media (max-width: 768px) {
-  /* Top navigation */
   .topbar {
     height: auto;
     min-height: 54px;
     flex-wrap: wrap;
     padding: 8px 10px;
     gap: 8px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
   }
   
   .topbar-left, .topbar-right {
@@ -758,17 +762,26 @@ body.light .modal-body{ color: var(--muted); }
     font-size: 14px;
   }
   
-  /* Main content area */
   .app {
     padding: 10px;
+    padding-top: 64px;
   }
   
   .page-top {
     padding: 10px;
     margin-bottom: 8px;
+    position: fixed;
+    top: 54px;
+    left: 0;
+    right: 0;
+    z-index: 90;
+    background: var(--panel);
   }
   
-  /* 搜尋列改為彈性佈局 */
+  .p2 {
+    padding-top: 10px;
+  }
+  
   .search-row {
     margin-bottom: 8px;
     display: flex;
