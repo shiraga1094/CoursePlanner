@@ -4,7 +4,7 @@
 import { state } from './state.js';
 import { $, deptMatchesCategory } from './utils.js';
 import { denseKey } from './courseData.js';
-import { parseTimeToSchedule } from './timeParser.js';
+import { parseTimeToSchedule, placeKey } from './timeParser.js';
 
 // Check if course is in saved list
 export function isSaved(key){
@@ -42,11 +42,16 @@ export function getFilteredCourses(strictOverride){
       }
     }
     if (loc){
-      const pk = c.location.toLowerCase();
-      if (pk !== loc.toLowerCase()) return false;
+      const coursePlace = placeKey(c.location);
+      if (coursePlace !== loc) return false;
     }
     if (core && c.core !== core) return false;
-    if (day && !(c.time || "").includes(day)) return false;
+    if (day){
+      const times = parseTimeToSchedule(c.time);
+      if (!times || times.length === 0) return false;
+      const hasDay = times.some(t => t.day === day);
+      if (!hasDay) return false;
+    }
 
     if (kw){
       const hay = `${c.name} ${c.code} ${c.teacher} ${c.dept}`.toLowerCase();
