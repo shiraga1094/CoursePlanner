@@ -1,8 +1,12 @@
+// Global application state
+// Centralized store for courses, filters, and UI state
+
 export const state = {
   courses: [],
   denseMap: {},
   savedCourses: [],
   selectedCourses: [],
+  conflictingCourse: null,
   currentTerm: "",
   availableTerms: [],
   activePage: "P1",
@@ -16,9 +20,11 @@ export const state = {
   _slotMouseDownKey: null
 };
 
+// Reset course-related state (preserves UI state)
 export function resetCourseData() {
   state.courses = [];
   state.denseMap = {};
   state.savedCourses = [];
   state.selectedCourses = [];
+  state.conflictingCourse = null;
 }

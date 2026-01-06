@@ -1,3 +1,6 @@
+// Main application entry point (modular version)
+// Handles term detection, data loading, and initialization
+
 import { state } from './state.js';
 import { loadJson, $ } from './utils.js';
 import { normalizeCourse } from './courseData.js';
@@ -5,6 +8,7 @@ import { loadFromStorage } from './storage.js';
 import { renderDeptSelect, renderCoreSelect, renderLocationSelect, renderDeptSidebar, renderAll, applyTheme } from './ui.js';
 import { bindEvents } from './events.js';
 
+// Detect available semesters by checking data directory
 async function detectAvailableTerms(){
   const terms = [];
   for (let year = 112; year <= 120; year++) {
@@ -20,6 +24,7 @@ async function detectAvailableTerms(){
   return terms;
 }
 
+// Load course data for a specific term
 async function loadTermData(term){
   if (!term) return;
   
@@ -39,6 +44,7 @@ async function loadTermData(term){
   renderAll();
 }
 
+// Switch to a different semester
 async function switchTerm(term){
   if (term === state.currentTerm) return;
   

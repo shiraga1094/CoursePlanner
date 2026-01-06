@@ -3,16 +3,16 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { fetchAll } from "./fetch.js";
 
-// ===== 路徑：以檔案位置為基準（不會漂）=====
+// Setup paths for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "..", "data");
 const CONFIG_FILE = path.join(__dirname, "config.json");
 
-// ===== 確保 data/ 存在 =====
+// Ensure data directory exists
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
-// ===== 學期計算函數 =====
+// Term calculation helpers
 function getPreviousTerm(year, term) {
   if (term === 1) {
     return { year: year - 1, term: 3 };
@@ -29,7 +29,7 @@ function getNextTerm(year, term) {
   }
 }
 
-// ===== 載入/儲存配置 =====
+// Load/save configuration for current semester tracking
 function loadConfig() {
   try {
     if (fs.existsSync(CONFIG_FILE)) {
@@ -39,7 +39,7 @@ function loadConfig() {
   } catch (err) {
     console.log("無法載入配置，使用預設值");
   }
-  // 預設配置：起始學期 114-2
+  // Default: start from semester 114-2
   return { currentYear: 114, currentTerm: 2 };
 }
 
@@ -48,7 +48,7 @@ function saveConfig(year, term) {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf8");
 }
 
-// ===== 自動抓取所有學期 =====
+// Main function: automatically fetch courses for multiple semesters
 async function fetchAllSemesters() {
   const config = loadConfig();
   let currentYear = config.currentYear;
@@ -56,7 +56,7 @@ async function fetchAllSemesters() {
   
   console.log(`\n========== 當前學期設定：${currentYear}-${currentTerm} ==========`);
   
-  // 嘗試抓取當前學期的下一個學期（檢查是否有新學期）
+  // Check if next semester is available (auto-update detection)
   const next = getNextTerm(currentYear, currentTerm);
   console.log(`\n檢查新學期 ${next.year}-${next.term} 是否可用...`);
   
@@ -74,7 +74,7 @@ async function fetchAllSemesters() {
     console.log(`✗ 新學期尚未開放，維持當前學期 ${currentYear}-${currentTerm}`);
   }
   
-  // 從當前學期往前推6個學期
+  // Collect 6 semesters counting back from current
   const termsToFetch = [];
   let y = currentYear;
   let t = currentTerm;
@@ -108,17 +108,15 @@ async function fetchAllSemesters() {
         console.log(`[${semesterName}] 沒有課程資料，跳過`);
         skipCount++;
       } else {
-        // 建立學期目錄
+        // Create semester directory and save data
         fs.mkdirSync(outDir, { recursive: true });
         
-        // 儲存 courses.json
         fs.writeFileSync(
           path.join(outDir, "courses.json"),
           JSON.stringify(courses, null, 2),
           "utf8"
         );
         
-        // 儲存 dense.json
         fs.writeFileSync(
           path.join(outDir, "dense.json"),
           JSON.stringify(denseMap, null, 2),
@@ -135,7 +133,7 @@ async function fetchAllSemesters() {
       skipCount++;
     }
     
-    // 防止過度請求
+    // Rate limiting between requests
     await new Promise(r => setTimeout(r, 2000));
   }
   

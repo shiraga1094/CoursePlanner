@@ -1,10 +1,14 @@
+// UI rendering and display functions
+// Handles all DOM updates, modals, themes, and schedule visualization
+
 import { state } from './state.js';
 import { $, escapeHtml, deptMatchesCategory } from './utils.js';
 import { denseKey } from './courseData.js';
 import { isSaved, isSelected, getFilteredCourses } from './filters.js';
-import { addToSaved, removeSaved, toggleSelected } from './courseActions.js';
+import { addToSaved, removeSaved, toggleSelected, checkNewCourseConflict } from './courseActions.js';
 import { parseSlot, parseTimeToSchedule, dayIndex, slotIndex, SLOT_TABLE } from './timeParser.js';
 
+// Switch between P1 (search) and P2 (schedule) pages
 export function setActivePage(p){
   state.activePage = p;
   $("pageP1").classList.toggle("active", p==="P1");
@@ -15,6 +19,7 @@ export function setActivePage(p){
   renderAll();
 }
 
+// Open modal dialog with title and content
 export function openModal(title, html){
   $("modalTitle").textContent = title;
   $("modalBody").innerHTML = html || "<div class='tiny'>無資料</div>";
@@ -26,6 +31,7 @@ export function closeModal(){
   $("modalBody").innerHTML = "";
 }
 
+// Apply theme (light/dark)
 export function applyTheme(theme){
   if (theme === 'light') document.body.classList.add('light');
   else document.body.classList.remove('light');
@@ -41,14 +47,10 @@ export function toggleTheme(){
 }
 
 export function showConflictNotice(msg){
-  $("conflictMessage").textContent = msg;
-  $("conflictNotice").classList.remove("hidden");
-  window.clearTimeout(showConflictNotice._t);
-  showConflictNotice._t = window.setTimeout(()=>closeConflictNotice(), 5000);
+  // Conflict notice removed - only show red highlighting in P2
 }
 
 export function closeConflictNotice(){
-  $("conflictNotice").classList.add("hidden");
   document.querySelectorAll(".slotcell.has-conflict").forEach(c=>c.classList.remove("has-conflict"));
   document.querySelectorAll(".coursepill.conflict").forEach(c=>c.classList.remove("conflict"));
 }
@@ -336,6 +338,8 @@ function buildScheduleTable(){
   return html;
 }
 
+// Render main schedule grid with selected courses
+// Handles multi-segment courses and conflict highlighting
 export function renderSchedule(){
   const wrap = $("scheduleWrap");
   wrap.innerHTML = buildScheduleTable();
@@ -348,6 +352,16 @@ export function renderSchedule(){
   });
   renderP1();
 
+  // Find courses that conflict with attempted selection
+  const conflictingCourseKeys = new Set();
+  if (state.conflictingCourse) {
+    const conflicts = checkNewCourseConflict(state.conflictingCourse);
+    for (const c of conflicts) {
+      conflictingCourseKeys.add(denseKey(c));
+    }
+  }
+
+  // Map courses to their time slots
   const cellCourses = new Map();
   for (const c of state.selectedCourses){
     const times = parseTimeToSchedule(c.time);
@@ -367,12 +381,17 @@ export function renderSchedule(){
     const cell = document.querySelector(`.slotcell[data-day="${day}"][data-slot="${slot}"]`);
     if (!cell) continue;
 
+    // Mark cell if multiple courses in same slot
     const isConflict = arr.length > 1;
     if (showConflict && isConflict) cell.classList.add("has-conflict");
 
+    // Render course pills with conflict styling
     for (const c of arr){
+      const courseKey = denseKey(c);
+      const isConflictingWithAttempted = conflictingCourseKeys.has(courseKey);
+      
       const pill = document.createElement("div");
-      pill.className = "coursepill" + (showConflict && isConflict ? " conflict" : "");
+      pill.className = "coursepill" + (showConflict && (isConflict || isConflictingWithAttempted) ? " conflict" : "");
       pill.innerHTML = `
         <div class="pname">${escapeHtml(c.name)}</div>
         <div class="pinfo">${escapeHtml(c.teacher || "")}</div>

@@ -1,5 +1,9 @@
+// LocalStorage persistence layer
+// Saves/loads user's saved and selected courses per semester
+
 import { state } from './state.js';
 
+// Save current state to localStorage
 export function saveToStorage(){
   if (!state.currentTerm) return;
   const key = `savedCourses_${state.currentTerm}`;
@@ -9,6 +13,7 @@ export function saveToStorage(){
   localStorage.setItem("lastTerm", state.currentTerm);
 }
 
+// Load saved state from localStorage
 export function loadFromStorage(){
   if (!state.currentTerm) return;
   const key = `savedCourses_${state.currentTerm}`;
@@ -17,12 +22,14 @@ export function loadFromStorage(){
   try { state.selectedCourses = JSON.parse(localStorage.getItem(key2) || "[]"); } catch { state.selectedCourses=[]; }
 }
 
+// Clear all courses from current semester
 export function clearAll(){
   state.savedCourses = [];
   state.selectedCourses = [];
   saveToStorage();
 }
 
+// Remove localStorage entries and clear state
 export function resetAll(){
   if (!state.currentTerm) return;
   localStorage.removeItem(`savedCourses_${state.currentTerm}`);

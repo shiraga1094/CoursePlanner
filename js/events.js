@@ -1,11 +1,15 @@
+// Event binding and handlers
+// Sets up all interactive elements and schedule export functionality
+
 import { state } from './state.js';
 import { $ } from './utils.js';
 import { clearAll, resetAll } from './storage.js';
 import { setActivePage, renderP1, renderP2, renderAll, toggleTheme, closeConflictNotice, closeModal, openSlotPicker } from './ui.js';
 
-// Hardcoded export width (in pixels). Change this value to lock exported PNG width.
+// Export image settings
 const EXPORT_FIXED_WIDTH = 1200;
 
+// Bind all UI event handlers
 export function bindEvents(){
   $("btnP1").onclick = ()=>setActivePage("P1");
   $("btnP2").onclick = ()=>setActivePage("P2");
@@ -40,8 +44,6 @@ export function bindEvents(){
   $("btnReset").onclick = ()=>{ resetAll(); renderAll(); };
   $("btnClear2").onclick = ()=>{ clearAll(); renderAll(); };
   $("btnReset2").onclick = ()=>{ resetAll(); renderAll(); };
-
-  $("closeNotice").onclick = ()=>closeConflictNotice();
 
   $("p2Sort").addEventListener("change", ()=>renderP2());
   $("p2ShowConflict").addEventListener("change", ()=>renderP2());
@@ -108,6 +110,7 @@ export function bindEvents(){
   }
 }
 
+// Load html2canvas library dynamically
 async function ensureHtml2Canvas(){
   if (window.html2canvas) return window.html2canvas;
   return new Promise((resolve, reject)=>{
@@ -119,6 +122,8 @@ async function ensureHtml2Canvas(){
   });
 }
 
+// Export schedule as PNG image
+// Removes conflict highlighting from exported image
 async function exportSchedule(){
   try{
     const html2canvas = await ensureHtml2Canvas();
@@ -126,7 +131,7 @@ async function exportSchedule(){
     if (!node) return alert('找不到課表節點');
     const table = node.querySelector('table');
     if (!table) {
-      // Render an offscreen clone sized to the currently rendered width
+      // No table: render offscreen clone
       const SCALE = 2;
       const exportWidth = EXPORT_FIXED_WIDTH;
 
@@ -139,6 +144,11 @@ async function exportSchedule(){
       const cloned = node.cloneNode(true);
       cloned.style.width = exportWidth + 'px';
       cloned.style.overflow = 'visible';
+      
+      // Remove conflict highlighting for clean export
+      cloned.querySelectorAll('.has-conflict').forEach(el => el.classList.remove('has-conflict'));
+      cloned.querySelectorAll('.conflict').forEach(el => el.classList.remove('conflict'));
+      
       wrap.appendChild(cloned);
       document.body.appendChild(wrap);
 
@@ -154,7 +164,13 @@ async function exportSchedule(){
       return;
     }
 
+    // Export table directly
     const clone = table.cloneNode(true);
+    
+    // Remove conflict highlighting for clean export
+    clone.querySelectorAll('.has-conflict').forEach(el => el.classList.remove('has-conflict'));
+    clone.querySelectorAll('.conflict').forEach(el => el.classList.remove('conflict'));
+    
     const wrapper = document.createElement('div');
     wrapper.style.position = 'absolute';
     wrapper.style.left = '-99999px';

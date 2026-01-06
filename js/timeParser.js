@@ -1,3 +1,7 @@
+// Time and schedule parsing utilities
+// Handles conversion between course time strings and schedule grid
+
+// Slot time table: maps slot codes to start/end times (HHMM format)
 export const SLOT_TABLE = [
   { code: "00", s:710, e:800 },
   { code: "01", s:810, e:900 },
@@ -16,6 +20,8 @@ export const SLOT_TABLE = [
   { code: "D",  s:2125, e:2215 },
 ];
 
+// Parse time string into human-readable format
+// Example: "二 3-4 公館 Ｓ401" -> "星期二 第 03-04 節"
 export function parseSlot(timeRaw) {
   if (!timeRaw || timeRaw.trim() === "") return "未排定";
   const segments = timeRaw.split(/[,，]/).map(s => s.trim()).filter(Boolean);
@@ -34,6 +40,8 @@ export function parseSlot(timeRaw) {
   return results.length > 0 ? results.join(', ') : timeRaw;
 }
 
+// Parse time string into schedule data structure
+// Returns array of {day, slots} objects for multi-segment courses
 export function parseTimeToSchedule(timeRaw) {
   if (!timeRaw || timeRaw.trim() === "") return [];
   const segments = timeRaw.split(/[,，]/).map(s => s.trim()).filter(Boolean);
@@ -62,6 +70,7 @@ export function parseTimeToSchedule(timeRaw) {
   return results;
 }
 
+// Extract location from time string
 export function parseLocation(timeRaw){
   if (!timeRaw || timeRaw.trim() === "") return "";
   const segments = timeRaw.split(/[,，]/).map(s => s.trim()).filter(Boolean);
@@ -78,6 +87,7 @@ export function parseLocation(timeRaw){
   return locations.join(', ');
 }
 
+// Extract campus key from location string (e.g., "公館", "和平")
 export function placeKey(locationRaw){
   if (!locationRaw) return "";
   const parts = String(locationRaw).split(/[\s,、·]+/).map(p=>p.trim()).filter(Boolean);
@@ -101,10 +111,12 @@ export function placeKey(locationRaw){
   return "";
 }
 
+// Get index of day in week (0-6)
 export function dayIndex(d){
   return ["一","二","三","四","五","六","日"].indexOf(d);
 }
 
+// Get index of slot code in SLOT_TABLE
 export function slotIndex(code){
   return SLOT_TABLE.map(s=>s.code).indexOf(code);
 }

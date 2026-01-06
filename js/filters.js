@@ -1,16 +1,23 @@
+// Course filtering logic
+// Handles search, department, time slot, and other filters
+
 import { state } from './state.js';
 import { $, deptMatchesCategory } from './utils.js';
 import { denseKey } from './courseData.js';
 import { parseTimeToSchedule } from './timeParser.js';
 
+// Check if course is in saved list
 export function isSaved(key){
   return state.savedCourses.some(c=>denseKey(c) === key);
 }
 
+// Check if course is in selected (schedule) list
 export function isSelected(key){
   return state.selectedCourses.some(c=>denseKey(c) === key);
 }
 
+// Get filtered courses based on all active filters
+// Applies keyword search, department, core, day, location, mode, and time slot filters
 export function getFilteredCourses(strictOverride){
   const kw = $("searchInput").value.trim().toLowerCase();
   const dept = $("filterDept").value || state.activeDept || "";
@@ -50,6 +57,7 @@ export function getFilteredCourses(strictOverride){
     if (mode === "saved" && !isSaved(k)) return false;
     if (mode === "selected" && !isSelected(k)) return false;
 
+    // Time slot filter: check if course matches selected time slots
     if (state.selectedSlotKeys.size > 0){
       const times = parseTimeToSchedule(c.time);
       if (!times || times.length === 0) return false;
@@ -57,6 +65,7 @@ export function getFilteredCourses(strictOverride){
       let hasMatch = false;
       const effectiveStrict = (typeof strictOverride !== 'undefined') ? strictOverride : state.strictSlotSearch;
       
+      // Check each time segment for slot matches
       for (const info of times) {
         const courseKeys = (info.slots || []).map(s => `${info.day}-${s}`);
         if (courseKeys.length === 0) continue;

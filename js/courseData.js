@@ -1,5 +1,9 @@
+// Course data normalization and key generation
+// Converts raw API data into standardized course objects
+
 import { parseLocation } from './timeParser.js';
 
+// Map GE core codes to Chinese labels
 const CORE_MAP = {
   "A1UG": "人文藝術",
   "A2UG": "社會科學",
@@ -19,6 +23,8 @@ function mapCoreLabel(raw){
   return Array.from(new Set(mapped)).join(" / ");
 }
 
+// Normalize raw course data into standard format
+// Extracts program info and cleans course name
 export function normalizeCourse(raw){
   let courseName = (raw.chn_name || "").replaceAll("</br>", " ").replaceAll("<br>", " ");
   let programs = [];
@@ -48,6 +54,7 @@ export function normalizeCourse(raw){
   };
 }
 
+// Generate unique key for course (uses serial_no as primary identifier)
 export function denseKey(course){
   return course.serial || `${course.code}-${course.group || ""}`;
 }

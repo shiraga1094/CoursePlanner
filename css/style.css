@@ -87,12 +87,12 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
   display:flex; gap:10px; align-items:center; flex-wrap:wrap;
 }
 
-/* 篩選器折疊按鈕 (預設隱藏) */
+/* Filter toggle button (hidden by default, shown on mobile) */
 .filter-toggle {
   display: none;
 }
 
-/* 悬浮按钮 (预设隐藏，移动端显示) */
+/* Floating action button (hidden by default, shown on mobile) */
 .float-toggle {
   display: none;
   position: fixed;
@@ -135,7 +135,7 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
   line-height: 1;
 }
 
-/* 悬浮面板 */
+/* Floating panel for mobile view */
 .float-panel {
   display: none;
   position: fixed;
@@ -193,7 +193,7 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
 
 .layout{
   display:grid;
-  /* Sidebar removed in test view: content + rightbar */
+  /* Two-column layout: main content + rightbar (sidebar removed) */
   grid-template-columns: 1fr 320px;
   gap:12px;
   height: calc(100vh - 54px - 14px - 14px - 120px);
@@ -203,17 +203,17 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
   grid-template-columns: 1fr 320px;
 }
 
-/* Ensure P2 content area allows its children to grow/shrink and scroll */
+/* P2 content area: allow children to grow/shrink and scroll */
 .layout.p2 .content{ min-height:0; }
 
-/* scheduleWrap should fill available vertical space and scroll when content overflows */
+/* Schedule container: fill vertical space and enable scrolling */
 .schedule-wrap{ flex:1; overflow:auto; min-height:0; padding-right:6px; }
-/* keep stable scrollbar gutter and make scrollbar visible/thin */
+/* Stable scrollbar gutter with thin, visible scrollbar */
 .schedule-wrap{ scrollbar-gutter: stable both-edges; }
 .schedule-wrap::-webkit-scrollbar{ width:10px; }
 .schedule-wrap::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.06); border-radius:8px; border:2px solid transparent; background-clip: padding-box; }
 
-/* sorted list view should also be able to scroll */
+/* Sorted list view: scrollable container */
 .sorted{ flex:1; overflow:auto; }
 
 .sidebar, .content, .rightbar{
@@ -224,7 +224,7 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
   overflow:hidden;
 }
 
-/* make rightbar a column flex so its saved list can scroll independently */
+/* Rightbar: column flex layout for scrollable saved list */
 .rightbar{
   display:flex;
   flex-direction:column;
@@ -301,7 +301,7 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
   position:relative;
 }
 .card.added{
-  /* use blue accent for "added" state to avoid repeating the green used in background */
+  /* Blue accent for saved courses (avoids green background overlap) */
   border-color: rgba(122,162,255,.55);
   background: rgba(122,162,255,.10);
 }
@@ -620,13 +620,21 @@ body.light .notice-text{ color: rgba(20,20,20,.85); }
 body.light .table th{ background: rgba(0,0,0,.04); color: var(--muted); border-color: var(--border); }
 body.light .timecell{ background: rgba(0,0,0,.03); color: var(--muted); }
 body.light .slotcell{ background: transparent; }
+body.light .slotcell.has-conflict{
+  outline: 2px solid rgba(255,93,93,.85);
+  background: rgba(255,93,93,.25);
+}
 body.light .coursepill{ background: rgba(255,255,255,.9); border-color: var(--border); color: var(--text); }
+body.light .coursepill.conflict{
+  border-color: rgba(255,93,93,.85);
+  background: rgba(255,93,93,.28);
+}
 body.light .modal-body{ color: var(--muted); }
 
-/* ========== 響應式設計：手機版 ========== */
+/* Responsive design: Mobile view */
 
 @media (max-width: 768px) {
-  /* 頂部導航 */
+  /* Top navigation */
   .topbar {
     height: auto;
     min-height: 54px;
@@ -648,7 +656,7 @@ body.light .modal-body{ color: var(--muted); }
     font-size: 14px;
   }
   
-  /* 主要內容區 */
+  /* Main content area */
   .app {
     padding: 10px;
   }
@@ -670,7 +678,7 @@ body.light .modal-body{ color: var(--muted); }
     flex: 1;
   }
   
-  /* 顯示篩選器折疊按鈕 */
+  /* Show filter toggle button */
   .filter-toggle {
     display: flex;
     align-items: center;
@@ -684,7 +692,7 @@ body.light .modal-body{ color: var(--muted); }
     transition: transform 0.2s ease;
   }
   
-  /* 篩選面板預設收起 */
+  /* Filter panel: collapsed by default */
   .filter-panel {
     max-height: 0;
     overflow: hidden;
@@ -693,14 +701,14 @@ body.light .modal-body{ color: var(--muted); }
     margin-bottom: 0;
   }
   
-  /* 展開狀態 */
+  /* Expanded state */
   .filter-panel.expanded {
     max-height: 800px;
     opacity: 1;
     margin-bottom: 8px;
   }
   
-  /* 篩選器改為垂直排列 */
+  /* Vertical filter layout */
   .filter-row {
     flex-direction: column;
     gap: 8px;
@@ -722,7 +730,7 @@ body.light .modal-body{ color: var(--muted); }
     width: 100%;
   }
   
-  /* 佈局改為單列 */
+  /* Single column layout */
   .layout {
     grid-template-columns: 1fr;
     gap: 10px;
@@ -734,7 +742,7 @@ body.light .modal-body{ color: var(--muted); }
     grid-template-columns: 1fr;
   }
   
-  /* 右側欄在手機上移到下方 */
+  /* Rightbar moves below content on mobile */
   .rightbar {
     order: 2;
     max-height: 400px;
@@ -744,7 +752,7 @@ body.light .modal-body{ color: var(--muted); }
     order: 1;
   }
   
-  /* 課程卡片 */
+  /* Course cards */
   .cards {
     gap: 8px;
     padding-right: 0;
@@ -787,7 +795,7 @@ body.light .modal-body{ color: var(--muted); }
     height: 36px;
   }
   
-  /* 已加入清單 */
+  /* Saved courses list */
   .saved {
     max-height: 300px;
   }
@@ -832,7 +840,7 @@ body.light .modal-body{ color: var(--muted); }
     min-width: 80px;
   }
   
-  /* 課表 */
+  /* Schedule table */
   .table {
     font-size: 11px;
   }
@@ -854,7 +862,7 @@ body.light .modal-body{ color: var(--muted); }
     min-height: 30px;
   }
   
-  /* 排序後清單 */
+  /* Sorted list view */
   .sorted {
     padding: 8px;
   }

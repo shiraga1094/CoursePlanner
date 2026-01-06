@@ -1,7 +1,11 @@
+// NTNU Course API Crawler
+// Fetches course data from NTNU's course selection system
+
 import axios from "axios";
 import { CookieJar } from "tough-cookie";
 import { wrapper } from "axios-cookiejar-support";
 
+// API endpoints
 const BASE = "https://courseap2.itc.ntnu.edu.tw";
 const INDEX = `${BASE}/acadmOpenCourse/index.jsp`;
 const API = `${BASE}/acadmOpenCourse/CofopdlCtrl`;
@@ -9,6 +13,7 @@ const DEPT_API = `${BASE}/acadmOpenCourse/CofnameCtrl`;
 const GU_API = `${BASE}/acadmOpenCourse/cofopdlGeneral.do`;
 const DENSE_API = `${BASE}/acadmOpenCourse/coftmscDate.do`;
 
+// General education core codes
 const GU_CORE = ["A1UG","A2UG","A3UG","A4UG","B1UG","B2UG","B3UG","C1UG","C2UG"];
 const GU_MAP = {
   "人文藝術":"A1UG","社會科學":"A2UG","自然科學":"A3UG","邏輯運算":"A4UG",
@@ -18,6 +23,7 @@ const GU_MAP = {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// Create HTTP client with session cookies
 export async function createClient() {
   const jar = new CookieJar();
   const client = wrapper(axios.create({
@@ -30,11 +36,12 @@ export async function createClient() {
       "Accept-Language": "zh-TW,zh;q=0.9"
     }
   }));
-  await client.get(INDEX);     // 先拿 session
-  await sleep(1000);           // Python 有 sleep
+  await client.get(INDEX);
+  await sleep(1000);
   return client;
 }
 
+// Build base request parameters
 function baseParams(year, term, dept) {
   return {
     _dc: Date.now(),
@@ -44,7 +51,7 @@ function baseParams(year, term, dept) {
     action: "showGrid",
     language: "chinese",
     start: 0,
-    limit: 2000,               // Python 不拉爆
+    limit: 2000,
     page: 1,
     chn: "", engTeach: "N", clang: "N", moocs: "N",
     remoteCourse: "N", digital: "N", adsl: "N",
@@ -53,22 +60,24 @@ function baseParams(year, term, dept) {
   };
 }
 
+// Safe GET request with rate limiting
 async function safeGet(client, url, params) {
   try {
     const r = await client.get(url, { params });
-    await sleep(800);          // 每次 request 都慢
+    await sleep(800);
     return r;
   } catch {
-    await sleep(1000);         // 出錯也慢
+    await sleep(1000);
     return null;
   }
 }
 
+// Main fetch function: get all courses for a given semester
 export async function fetchAll(year, term) {
   const client = await createClient();
   console.log(`  → 正在獲取科系列表...`);
 
-  // 1) 科系列表（照 Python）
+  // 1) Fetch department list
   const deptRes = await safeGet(client, DEPT_API, {
     _dc: Date.now(), action: "cof", type: "chn",
     year, term, page: 1, start: 0, limit: 25
@@ -81,7 +90,7 @@ export async function fetchAll(year, term) {
 
   const all = [];
 
-  // 2) 逐系抓（GU 拆 core）
+  // 2) Fetch courses by department (split GU into core categories)
   for (let i = 0; i < depts.length; i++) {
     const dept = depts[i];
     const deptName = deptNames[dept] || dept;
@@ -112,7 +121,7 @@ export async function fetchAll(year, term) {
     }
   }
 
-  // 3) 去重（Python 同樣邏輯）
+  // 3) Deduplicate courses by serial_no
   console.log(`  → 去除重複課程... (原始: ${all.length} 門)`);
   const seen = new Set();
   const uniq = [];
@@ -124,7 +133,7 @@ export async function fetchAll(year, term) {
   }
   console.log(`  → 去重後: ${uniq.length} 門課程`);
 
-  // 4) 補通識核心 & 密集課程（逐門慢慢補）
+  // 4) Enrich courses with GE core info and intensive course dates
   const denseMap = {};
   let guCoreCount = 0;
   let denseCount = 0;
@@ -133,6 +142,7 @@ export async function fetchAll(year, term) {
   for (let i = 0; i < uniq.length; i++) {
     const c = uniq[i];
     
+    // Fetch GE core category for general education courses
     if (c.option_code === "通" && !c.generalCore) {
       const r = await safeGet(client, GU_API, {
         _dc: Date.now(), action: "show",
@@ -148,6 +158,7 @@ export async function fetchAll(year, term) {
       }
     }
 
+    // Fetch intensive course schedule details
     if ((c.time_inf || "").includes("密集課程")) {
       const r = await safeGet(client, DENSE_API, {
         _dc: Date.now(), action: "show",
@@ -160,7 +171,7 @@ export async function fetchAll(year, term) {
       denseCount++;
     }
     
-    // 每100門課顯示進度
+    // Progress indicator every 100 courses
     if ((i + 1) % 100 === 0) {
       console.log(`     · 已處理 ${i + 1}/${uniq.length} 門課程...`);
     }

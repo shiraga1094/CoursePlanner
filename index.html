@@ -8,6 +8,7 @@
 </head>
 <body>
 
+<!-- Top navigation bar -->
 <header class="topbar">
   <div class="topbar-left">
     <div class="term">
@@ -95,15 +96,6 @@
           </div>
         </div>
 
-        <div id="conflictNotice" class="notice hidden">
-          <div class="notice-icon">⚠️</div>
-          <div class="notice-body">
-            <div class="notice-title">時間衝突</div>
-            <div id="conflictMessage" class="notice-text"></div>
-          </div>
-          <button id="closeNotice" class="btn btn-sm">✕</button>
-        </div>
-
         <div class="right-actions">
           <button id="btnClear" class="btn btn-sm">清空</button>
           <button id="btnReset" class="btn btn-sm btn-warn">重置</button>
@@ -113,7 +105,6 @@
       </aside>
     </div>
 
-    <!-- P1 悬浮已选面板 -->
     <button id="p1FloatToggle" class="float-toggle">
       <span class="float-toggle-icon">📋</span>
       <span class="float-toggle-text">已選 (<span id="p1FloatCount">0</span>)</span>
@@ -133,7 +124,7 @@
     </div>
   </section>
 
-  <!-- P2 -->
+  <!-- Page 2: Schedule view -->
   <section id="pageP2" class="page">
     <div class="page-top">
       <div class="filter-row">
@@ -181,7 +172,6 @@
       </aside>
     </div>
 
-    <!-- P2 悬浮课表面板 -->
     <button id="p2FloatToggle" class="float-toggle">
       <span class="float-toggle-icon">�</span>
       <span class="float-toggle-text">已選</span>
@@ -213,7 +203,6 @@
   </section>
 </main>
 
-<!-- Modal：dense 詳細 -->
 <div id="modal" class="modal hidden">
   <div class="modal-backdrop"></div>
   <div class="modal-card">
