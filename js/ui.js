@@ -269,12 +269,14 @@ function renderSavedInto(container){
     list.sort((a,b)=> (a.dept||"").localeCompare(b.dept||"", 'zh-Hant'));
   } else {
     list.sort((a,b)=>{
-      const ta = parseTimeToSchedule(a.time) || {day:'', slots:[]};
-      const tb = parseTimeToSchedule(b.time) || {day:'', slots:[]};
-      const da = dayIndex(ta.day), db = dayIndex(tb.day);
+      const ta = parseTimeToSchedule(a.time);
+      const tb = parseTimeToSchedule(b.time);
+      const aFirst = ta && ta.length > 0 ? ta[0] : {day:'', slots:[]};
+      const bFirst = tb && tb.length > 0 ? tb[0] : {day:'', slots:[]};
+      const da = dayIndex(aFirst.day), db = dayIndex(bFirst.day);
       if (da !== db) return da - db;
-      const sa = (ta.slots[0] || '');
-      const sb = (tb.slots[0] || '');
+      const sa = (aFirst.slots[0] || '');
+      const sb = (bFirst.slots[0] || '');
       return slotIndex(sa) - slotIndex(sb);
     });
   }
@@ -348,12 +350,14 @@ export function renderSchedule(){
 
   const cellCourses = new Map();
   for (const c of state.selectedCourses){
-    const t = parseTimeToSchedule(c.time);
-    if (!t) continue;
-    for (const slot of t.slots){
-      const key = `${t.day}-${slot}`;
-      if (!cellCourses.has(key)) cellCourses.set(key, []);
-      cellCourses.get(key).push(c);
+    const times = parseTimeToSchedule(c.time);
+    if (!times || times.length === 0) continue;
+    for (const t of times) {
+      for (const slot of t.slots){
+        const key = `${t.day}-${slot}`;
+        if (!cellCourses.has(key)) cellCourses.set(key, []);
+        cellCourses.get(key).push(c);
+      }
     }
   }
 
@@ -385,13 +389,15 @@ export function renderSchedule(){
 
 function highlightConflicts(conflicts){
   for (const c of conflicts){
-    const t = parseTimeToSchedule(c.time);
-    if (!t) continue;
-    for (const slot of t.slots){
-      const cell = document.querySelector(`.slotcell[data-day="${t.day}"][data-slot="${slot}"]`);
-      if (!cell) continue;
-      cell.classList.add("has-conflict");
-      cell.querySelectorAll(".coursepill").forEach(p=>p.classList.add("conflict"));
+    const times = parseTimeToSchedule(c.time);
+    if (!times || times.length === 0) continue;
+    for (const t of times) {
+      for (const slot of t.slots){
+        const cell = document.querySelector(`.slotcell[data-day="${t.day}"][data-slot="${slot}"]`);
+        if (!cell) continue;
+        cell.classList.add("has-conflict");
+        cell.querySelectorAll(".coursepill").forEach(p=>p.classList.add("conflict"));
+      }
     }
   }
 }
@@ -401,9 +407,10 @@ export function renderSortedList(){
   wrap.innerHTML = "";
 
   const entries = state.selectedCourses.map(c=>{
-    const t = parseTimeToSchedule(c.time);
-    const day = t?.day || "";
-    const slots = t?.slots || [];
+    const times = parseTimeToSchedule(c.time);
+    const first = times && times.length > 0 ? times[0] : {day:'', slots:[]};
+    const day = first.day || "";
+    const slots = first.slots || [];
     const s = slots[0] || "";
     const e = slots[slots.length-1] || "";
     return { c, day, s, e };

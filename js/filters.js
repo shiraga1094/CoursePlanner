@@ -51,18 +51,30 @@ export function getFilteredCourses(strictOverride){
     if (mode === "selected" && !isSelected(k)) return false;
 
     if (state.selectedSlotKeys.size > 0){
-      const info = parseTimeToSchedule(c.time);
-      if (!info) return false;
-      const courseKeys = (info.slots || []).map(s => `${info.day}-${s}`);
-      if (courseKeys.length === 0) return false;
+      const times = parseTimeToSchedule(c.time);
+      if (!times || times.length === 0) return false;
+      
+      let hasMatch = false;
       const effectiveStrict = (typeof strictOverride !== 'undefined') ? strictOverride : state.strictSlotSearch;
-      if (effectiveStrict){
-        const ok = courseKeys.every(k2 => state.selectedSlotKeys.has(k2));
-        if (!ok) return false;
-      } else {
-        const ok = courseKeys.some(k2 => state.selectedSlotKeys.has(k2));
-        if (!ok) return false;
+      
+      for (const info of times) {
+        const courseKeys = (info.slots || []).map(s => `${info.day}-${s}`);
+        if (courseKeys.length === 0) continue;
+        
+        if (effectiveStrict){
+          if (courseKeys.every(k2 => state.selectedSlotKeys.has(k2))) {
+            hasMatch = true;
+            break;
+          }
+        } else {
+          if (courseKeys.some(k2 => state.selectedSlotKeys.has(k2))) {
+            hasMatch = true;
+            break;
+          }
+        }
       }
+      
+      if (!hasMatch) return false;
     }
 
     return true;

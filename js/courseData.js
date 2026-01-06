@@ -32,6 +32,7 @@ export function normalizeCourse(raw){
   
   return {
     code: raw.course_code || "",
+    serial: raw.serial_no || "",
     name: courseName,
     teacher: raw.teacher || "",
     dept: raw.dept_chiabbr || raw.dept_code || "",
@@ -48,5 +49,5 @@ export function normalizeCourse(raw){
 }
 
 export function denseKey(course){
-  return `${course.code}-${course.group || ""}`;
+  return course.serial || `${course.code}-${course.group || ""}`;
 }

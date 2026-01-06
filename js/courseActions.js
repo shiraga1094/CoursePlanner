@@ -18,15 +18,23 @@ export function removeSaved(key){
 }
 
 function checkNewCourseConflict(newCourse){
-  const newInfo = parseTimeToSchedule(newCourse.time);
-  if (!newInfo) return [];
+  const newTimes = parseTimeToSchedule(newCourse.time);
+  if (!newTimes || newTimes.length === 0) return [];
   const conflicts = [];
   for (const ex of state.selectedCourses){
-    const exInfo = parseTimeToSchedule(ex.time);
-    if (!exInfo) continue;
-    if (newInfo.day !== exInfo.day) continue;
-    const overlap = newInfo.slots.some(s => exInfo.slots.includes(s));
-    if (overlap) conflicts.push(ex);
+    const exTimes = parseTimeToSchedule(ex.time);
+    if (!exTimes || exTimes.length === 0) continue;
+    
+    for (const newInfo of newTimes) {
+      for (const exInfo of exTimes) {
+        if (newInfo.day !== exInfo.day) continue;
+        const overlap = newInfo.slots.some(s => exInfo.slots.includes(s));
+        if (overlap && !conflicts.includes(ex)) {
+          conflicts.push(ex);
+          break;
+        }
+      }
+    }
   }
   return conflicts;
 }

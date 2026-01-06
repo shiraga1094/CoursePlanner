@@ -3,6 +3,9 @@ import { $ } from './utils.js';
 import { clearAll, resetAll } from './storage.js';
 import { setActivePage, renderP1, renderP2, renderAll, toggleTheme, closeConflictNotice, closeModal, openSlotPicker } from './ui.js';
 
+// Hardcoded export width (in pixels). Change this value to lock exported PNG width.
+const EXPORT_FIXED_WIDTH = 1200;
+
 export function bindEvents(){
   $("btnP1").onclick = ()=>setActivePage("P1");
   $("btnP2").onclick = ()=>setActivePage("P2");
@@ -91,6 +94,18 @@ export function bindEvents(){
 
   $("modalClose").onclick = ()=>closeModal();
   document.querySelector("#modal .modal-backdrop").onclick = ()=>closeModal();
+
+  // If user hasn't explicitly set an export width yet, auto-measure
+  // the currently rendered schedule width and persist it so exports
+  // remain consistent across reloads on this device.
+  try {
+    if (!localStorage.getItem('exportWidth')) {
+      const el = document.querySelector('#scheduleWrap');
+      if (el) localStorage.setItem('exportWidth', Math.round(el.getBoundingClientRect().width));
+    }
+  } catch (e) {
+    // ignore storage errors (e.g., disabled storage)
+  }
 }
 
 async function ensureHtml2Canvas(){
@@ -111,12 +126,31 @@ async function exportSchedule(){
     if (!node) return alert('找不到課表節點');
     const table = node.querySelector('table');
     if (!table) {
-      const origOverflow = node.style.overflow;
-      node.style.overflow = 'visible';
-      const canvas = await html2canvas(node, {backgroundColor: getComputedStyle(document.body).backgroundColor || '#ffffff', scale: 2});
-      node.style.overflow = origOverflow;
-      const url = canvas.toDataURL('image/png');
-      const a = document.createElement('a'); a.href = url; a.download = `timetable.png`; document.body.appendChild(a); a.click(); a.remove();
+      // Render an offscreen clone sized to the currently rendered width
+      const SCALE = 2;
+      const exportWidth = EXPORT_FIXED_WIDTH;
+
+      const wrap = document.createElement('div');
+      wrap.style.position = 'absolute';
+      wrap.style.left = '-99999px';
+      wrap.style.top = '0';
+      wrap.style.background = getComputedStyle(document.body).backgroundColor || '#ffffff';
+
+      const cloned = node.cloneNode(true);
+      cloned.style.width = exportWidth + 'px';
+      cloned.style.overflow = 'visible';
+      wrap.appendChild(cloned);
+      document.body.appendChild(wrap);
+
+      const canvas = await html2canvas(cloned, {backgroundColor: getComputedStyle(document.body).backgroundColor || '#ffffff', width: exportWidth, scale: SCALE});
+      document.body.removeChild(wrap);
+
+      await new Promise(resolve => canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `timetable.png`; document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+        resolve();
+      }, 'image/png'));
       return;
     }
 
@@ -129,18 +163,24 @@ async function exportSchedule(){
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
 
-    clone.style.width = table.scrollWidth + 'px';
+    const SCALE = 2;
+    const exportWidth = EXPORT_FIXED_WIDTH;
+    clone.style.width = exportWidth + 'px';
     clone.style.height = table.scrollHeight + 'px';
 
-    const canvas = await html2canvas(clone, {backgroundColor: getComputedStyle(document.body).backgroundColor || '#ffffff', scale: 2});
+    const canvas = await html2canvas(clone, {backgroundColor: getComputedStyle(document.body).backgroundColor || '#ffffff', width: exportWidth, scale: SCALE});
     wrapper.remove();
-    const url = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `timetable.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    await new Promise(resolve => canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `timetable.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      resolve();
+    }, 'image/png'));
   }catch(err){
     console.error('export failed', err);
     alert('匯出失敗：' + (err && err.message));
