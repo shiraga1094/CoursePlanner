@@ -86,9 +86,11 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
   left:0;
   right:0;
   z-index:100;
+  flex-wrap: nowrap;
 }
 
-.topbar-left, .topbar-right{ display:flex; align-items:center; gap:10px; }
+.topbar-left, .topbar-right{ display:flex; align-items:center; gap:10px; flex-shrink: 0; }
+.topbar-left{ flex-shrink: 1; min-width: 0; }
 .site-title{ 
   color:var(--text); 
   font-size:16px; 
@@ -96,7 +98,7 @@ body, .modal-card, .page-top, .card{ transition: background 280ms ease, color 18
   white-space:nowrap;
 }
 .label{ color:var(--muted); font-size:12px; }
-.term{ display:flex; align-items:center; gap:8px; }
+.term{ display:flex; align-items:center; gap:8px; flex-shrink: 0; }
 
 .app{ padding:14px; padding-top:68px; }
 
