@@ -21,8 +21,10 @@ export function setActivePage(p){
       const pageTop = document.querySelector(`#page${p} .page-top`);
       const layout = document.querySelector(`#page${p} .layout`);
       if (pageTop && layout) {
-        const height = pageTop.offsetHeight;
-        layout.style.paddingTop = (height + 20) + 'px';
+        const pageTopHeight = pageTop.offsetHeight;
+        const pageTopTopOffset = 54;
+        const totalPadding = pageTopTopOffset + pageTopHeight + 10;
+        layout.style.paddingTop = totalPadding + 'px';
       }
     }
   }, 50);
