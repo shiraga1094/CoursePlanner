@@ -5,6 +5,46 @@ import { isSaved, isSelected, getFilteredCourses } from './filters.js';
 import { addToSaved, removeSaved, toggleSelected, checkNewCourseConflict } from './courseActions.js';
 import { parseSlot, parseTimeToSchedule, dayIndex, slotIndex, SLOT_TABLE } from './timeParser.js';
 
+function generateCourseInfo(course) {
+  const info = [];
+  
+  info.push(`<div style="padding: 15px; line-height: 1.8; word-wrap: break-word; overflow-wrap: break-word;">`);
+  
+  if (course.code) {
+    info.push(`<p style="margin: 8px 0;"><strong>課程代碼：</strong>${escapeHtml(course.code)}${course.group ? `-${escapeHtml(course.group)}` : ''}</p>`);
+  }
+  
+  if (course.dept) {
+    info.push(`<p style="margin: 8px 0;"><strong>開課系所：</strong>${escapeHtml(course.dept)}</p>`);
+  }
+  
+  if (course.teacher) {
+    info.push(`<p style="margin: 8px 0;"><strong>授課教師：</strong>${escapeHtml(course.teacher)}</p>`);
+  }
+  
+  if (course.credit) {
+    info.push(`<p style="margin: 8px 0;"><strong>學分：</strong>${escapeHtml(course.credit)}</p>`);
+  }
+  
+  if (course.time_inf) {
+    info.push(`<p style="margin: 8px 0;"><strong>上課時間：</strong>${escapeHtml(course.time_inf)}</p>`);
+  } else if (course.time) {
+    info.push(`<p style="margin: 8px 0;"><strong>上課時間：</strong>${escapeHtml(parseSlot(course.time))}</p>`);
+  }
+  
+  if (course.location) {
+    info.push(`<p style="margin: 8px 0;"><strong>上課地點：</strong>${escapeHtml(course.location)}</p>`);
+  }
+  
+  if (course.restrict) {
+    info.push(`<p style="margin: 8px 0;"><strong>修課限制：</strong>${escapeHtml(course.restrict)}</p>`);
+  }
+  
+  info.push(`</div>`);
+  
+  return info.join('');
+}
+
 export function setActivePage(p){
   state.activePage = p;
   $("pageP1").classList.toggle("active", p==="P1");
@@ -399,12 +439,6 @@ export function renderSchedule(){
   const wrap = $("scheduleWrap");
   wrap.innerHTML = buildScheduleTable();
 
-  wrap.querySelectorAll('.slotcell').forEach(cell=>{
-    const day = cell.getAttribute('data-day');
-    const slot = cell.getAttribute('data-slot');
-    const key = `${day}-${slot}`;
-    cell.classList.toggle('slot-selected', state.selectedSlotKeys.has(key));
-  });
   renderP1();
 
   const conflictingCourseKeys = new Set();
@@ -449,8 +483,8 @@ export function renderSchedule(){
       `;
       pill.onclick = ()=>{
         const key2 = denseKey(c);
-        const html = state.denseMap[key2];
-        openModal(`${c.name}（${c.code}${c.group?`-${c.group}`:""}）`, html || "<div class='tiny'>dense.json 無對應資料</div>");
+        const html = state.denseMap[key2] || generateCourseInfo(c);
+        openModal(`${c.name}（${c.code}${c.group?`-${c.group}`:""}）`, html);
       };
       cell.appendChild(pill);
     }
@@ -514,7 +548,7 @@ export function renderSortedList(){
     `;
     div.onclick = ()=>{
       const key = denseKey(it.c);
-      openModal(`${it.c.name}（${it.c.code}${it.c.group?`-${it.c.group}`:""}）`, state.denseMap[key] || "<div class='tiny'>dense.json 無對應資料</div>");
+      openModal(`${it.c.name}（${it.c.code}${it.c.group?`-${escapeHtml(it.c.group)}`:""}）`, state.denseMap[key] || generateCourseInfo(it.c));
     };
     wrap.appendChild(div);
   }
